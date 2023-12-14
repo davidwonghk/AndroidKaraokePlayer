@@ -11,9 +11,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+
 
 class VideoPathGenerator {
   companion object{
@@ -61,10 +63,15 @@ fun VideoPlayer() {
               }
             }
           }
+
+          override fun onTracksChanged(tracks: Tracks) {
+            super.onTracksChanged(tracks)
+            addMediaItem(MediaItem.fromUri(VideoPathGenerator.next()))
+          }
         })
 
-        // add twice, with the listener callback, the media list never end
-        for (i in 0..1) {
+        // add 3 times, with the listener callbacks, the media list never end
+        for (i in 0..5) {
           addMediaItem(MediaItem.fromUri(VideoPathGenerator.next()))
         }
 
