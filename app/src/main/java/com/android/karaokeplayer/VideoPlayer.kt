@@ -19,7 +19,7 @@ class VideoPathGenerator {
   companion object{
     var id = 0
 
-    fun  next(): Uri {
+    fun next(): Uri {
       id += 1
       return Uri.parse("http://192.168.8.124:8080/play?id=$id")
     }
@@ -49,10 +49,7 @@ fun VideoPlayer() {
         val source = ProgressiveMediaSource.Factory(dataSourceFactory)
           .createMediaSource(MediaItem.fromUri(uri))
         setMediaSource(source)
-         */
-        playWhenReady = true
-        videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
-        repeatMode = Player.REPEAT_MODE_OFF
+        */
         addListener(object : Player.Listener {
           override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
@@ -60,13 +57,23 @@ fun VideoPlayer() {
               Player.STATE_BUFFERING -> {}
               Player.STATE_READY -> {}
               Player.STATE_ENDED -> {
-                addMediaItem(MediaItem.fromUri(VideoPathGenerator.next()));
+                addMediaItem(MediaItem.fromUri(VideoPathGenerator.next()))
               }
             }
           }
         })
-        addMediaItem(MediaItem.fromUri(VideoPathGenerator.next()))
+
+        // add twice, with the listener callback, the media list never end
+        for (i in 0..1) {
+          addMediaItem(MediaItem.fromUri(VideoPathGenerator.next()))
+        }
+
+        playWhenReady = true
+        videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
+        repeatMode = Player.REPEAT_MODE_OFF
+
         prepare()
+        play()
       }
   }
 
