@@ -16,7 +16,6 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 
-
 class VideoPathGenerator {
   companion object{
     var id = 0
@@ -80,9 +79,10 @@ fun VideoPlayer() {
         repeatMode = Player.REPEAT_MODE_OFF
 
         prepare()
-        play()
       }
   }
+  exoPlayer.play()
+  acceptControl(exoPlayer)
 
   DisposableEffect(
     AndroidView(factory = {
