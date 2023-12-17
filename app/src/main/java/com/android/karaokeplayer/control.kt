@@ -14,14 +14,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-fun acceptControl(exoPlayer: ExoPlayer): HttpClient {
+fun acceptControl(exoPlayer: ExoPlayer, wsHost: String, wsPort: Int): HttpClient {
   val handler = Handler(exoPlayer.applicationLooper)
   val client = HttpClient {
     install(WebSockets)
   }
   val scope = CoroutineScope(Dispatchers.IO)
   scope.launch {
-    client.webSocket(method = HttpMethod.Get, host = "192.168.8.124", port = 8082, path = "/") {
+    client.webSocket(method = HttpMethod.Get, host = wsHost, port = wsPort, path = "/") {
       while (true) {
         val message = incoming.receive() as? Frame.Text ?: continue
         val json = JSONObject(message.readText())

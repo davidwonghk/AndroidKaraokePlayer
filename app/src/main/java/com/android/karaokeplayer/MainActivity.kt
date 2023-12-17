@@ -20,8 +20,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize(),
                         shape = RectangleShape
                 ) {
-                  discover()
-                  VideoPlayer("http://192.168.8.124:8080/play")
+                  VideoPlayer()
                 }
             }
         }

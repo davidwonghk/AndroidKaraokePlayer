@@ -1,5 +1,8 @@
 package com.android.karaokeplayer
 
+import android.net.Uri
+import android.net.Uri.Builder
+import android.os.Handler
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
@@ -14,9 +17,15 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 
-fun nextUri(base: String): String {
+fun nextUri(host: String, port: Int): Uri {
   val id = System.currentTimeMillis();
-  return "$base?id=$id";
+  val uri = Builder().apply {
+    scheme("http")
+    encodedAuthority("$host:$port")
+    appendPath("play")
+    appendQueryParameter("id", id.toString())
+  }.build()
+  return uri
 }
 
 /**
@@ -26,7 +35,7 @@ fun nextUri(base: String): String {
  */
 @Composable
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
-fun VideoPlayer(uri: String) {
+fun VideoPlayer() {
   val context = LocalContext.current
   val exoPlayer = remember {
     ExoPlayer.Builder(context)
@@ -35,23 +44,34 @@ fun VideoPlayer(uri: String) {
         playWhenReady = true
         videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
         repeatMode = Player.REPEAT_MODE_OFF
+      }
+  }
 
-        addListener(object: Player.Listener {
+  discover { host, port, wsport ->
+    acceptControl(exoPlayer, host, wsport)
+    val handler = Handler(exoPlayer.applicationLooper)
+    handler.run {
+      exoPlayer.apply {
+        addListener(object : Player.Listener {
           override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            addMediaItem(MediaItem.fromUri(nextUri(uri)))
+            println("david: onMediaItemTransition")
+            addMediaItem(MediaItem.fromUri(nextUri(host, port)))
             super.onMediaItemTransition(mediaItem, reason)
           }
         })
 
-        addMediaItem(MediaItem.fromUri(nextUri(uri)))
-        addMediaItem(MediaItem.fromUri(nextUri(uri)))
+        println("david: discover callback 1")
+        addMediaItem(MediaItem.fromUri(nextUri(host, port)))
+        println("david: discover callback 2")
+        addMediaItem(MediaItem.fromUri(nextUri(host, port)))
+        println("david: discover callback 3")
 
         prepare()
         play()
       }
-  }
 
-  val client = acceptControl(exoPlayer)
+    }
+  }
 
   DisposableEffect(
     AndroidView(factory = {
@@ -66,7 +86,7 @@ fun VideoPlayer(uri: String) {
   ) {
     onDispose {
       exoPlayer.release()
-      client.close()
+      //client.close()
     }
   }
 }
