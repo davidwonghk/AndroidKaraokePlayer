@@ -2,7 +2,6 @@ package com.android.karaokeplayer
 
 import android.net.Uri
 import android.net.Uri.Builder
-import android.os.Handler
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
@@ -16,6 +15,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
+import kotlinx.coroutines.runBlocking
 
 fun nextUri(host: String, port: Int): Uri {
   val id = System.currentTimeMillis();
@@ -30,13 +30,16 @@ fun nextUri(host: String, port: Int): Uri {
 
 /**
  * Video player
- *
- * @param uri
  */
 @Composable
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun VideoPlayer() {
   val context = LocalContext.current
+
+  val (host, port, wsport) = runBlocking {
+     discover("0.0.0.0")
+  }
+
   val exoPlayer = remember {
     ExoPlayer.Builder(context)
       .build()
@@ -44,34 +47,23 @@ fun VideoPlayer() {
         playWhenReady = true
         videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
         repeatMode = Player.REPEAT_MODE_OFF
-      }
-  }
 
-  discover { host, port, wsport ->
-    acceptControl(exoPlayer, host, wsport)
-    val handler = Handler(exoPlayer.applicationLooper)
-    handler.run {
-      exoPlayer.apply {
         addListener(object : Player.Listener {
           override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-            println("david: onMediaItemTransition")
             addMediaItem(MediaItem.fromUri(nextUri(host, port)))
             super.onMediaItemTransition(mediaItem, reason)
           }
         })
 
-        println("david: discover callback 1")
         addMediaItem(MediaItem.fromUri(nextUri(host, port)))
-        println("david: discover callback 2")
         addMediaItem(MediaItem.fromUri(nextUri(host, port)))
-        println("david: discover callback 3")
 
         prepare()
         play()
       }
-
-    }
   }
+
+  acceptControl(exoPlayer, host, wsport)
 
   DisposableEffect(
     AndroidView(factory = {
