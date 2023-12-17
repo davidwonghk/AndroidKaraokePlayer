@@ -11,28 +11,26 @@ import javax.jmdns.ServiceListener
 fun discover() {
   try {
     // Create a JmDNS instance
-    val jmdns = JmDNS.create(InetAddress.getLocalHost())
+    val jmdns = JmDNS.create(InetAddress.getByName("0.0.0.0"), "karaokeMdns")
 
     // Add a service listener
-    jmdns.addServiceListener("_http._tcp.local.", SampleListener())
+    jmdns.addServiceListener("_http._tcp.local.", object: ServiceListener {
+      override fun serviceAdded(event: ServiceEvent) {
+        println("david Service added: " + event.info)
+      }
+
+      override fun serviceRemoved(event: ServiceEvent) {
+        println("david Service removed: " + event.info)
+      }
+
+      override fun serviceResolved(event: ServiceEvent) {
+        println("david Service resolved: " + event.info)
+      }
+    })
 
   } catch (e: UnknownHostException) {
-    println("david: " + e.message)
+    println(e.message)
   } catch (e: IOException) {
-    println("david: " + e.message)
-  }
-}
-
-private class SampleListener : ServiceListener {
-  override fun serviceAdded(event: ServiceEvent) {
-    println("david Service added: " + event.info)
-  }
-
-  override fun serviceRemoved(event: ServiceEvent) {
-    println("david Service removed: " + event.info)
-  }
-
-  override fun serviceResolved(event: ServiceEvent) {
-    println("david Service resolved: " + event.info)
+    println(e.message)
   }
 }

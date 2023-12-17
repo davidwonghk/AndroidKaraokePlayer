@@ -1,5 +1,7 @@
 package com.android.karaokeplayer
 
+import android.os.Handler
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.exoplayer.ExoPlayer
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.WebSockets
@@ -7,14 +9,13 @@ import io.ktor.client.plugins.websocket.webSocket
 import io.ktor.http.HttpMethod
 import io.ktor.websocket.Frame
 import io.ktor.websocket.readText
-import io.ktor.websocket.send
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
-
-fun acceptControl(exoPlayer: ExoPlayer) {
-  println("david: acceptControl")
+fun acceptControl(exoPlayer: ExoPlayer): HttpClient {
+  val handler = Handler(exoPlayer.applicationLooper)
   val client = HttpClient {
     install(WebSockets)
   }
@@ -22,15 +23,30 @@ fun acceptControl(exoPlayer: ExoPlayer) {
   scope.launch {
     client.webSocket(method = HttpMethod.Get, host = "192.168.8.124", port = 8082, path = "/") {
       while (true) {
-        println("david: client is running")
-        val message = incoming.receive() as? Frame.Text
-        val messageTxt = message?.readText()
-        println("david: " + messageTxt)
-        send("done")
+        val message = incoming.receive() as? Frame.Text ?: continue
+        val json = JSONObject(message.readText())
+        if (json.has("skip")) {
+          handler.post {
+            exoPlayer.seekToNextMediaItem()
+          }
+        }
+        if (json.has("switchAudio")) {
+          handler.post {
+            val audioTrackGroup = exoPlayer.currentTracks.groups.find{!it.isSelected}
+            if (audioTrackGroup != null) {
+              exoPlayer.trackSelectionParameters =
+                exoPlayer.trackSelectionParameters
+                  .buildUpon()
+                  .setOverrideForType(
+                    TrackSelectionOverride(audioTrackGroup.mediaTrackGroup, 0)
+                  ).build()
+            }
+          }
+        }
+        //send("done")
       }
     }
   }
-
-  client.close()
+  return client;
 }
 
