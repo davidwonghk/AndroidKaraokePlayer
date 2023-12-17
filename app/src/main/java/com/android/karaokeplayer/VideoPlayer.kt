@@ -14,6 +14,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 
+fun nextUri(base: String): String {
+  val id = System.currentTimeMillis();
+  return "$base?id=$id";
+}
 
 /**
  * Video player
@@ -30,9 +34,18 @@ fun VideoPlayer(uri: String) {
       .apply {
         playWhenReady = true
         videoScalingMode = C.VIDEO_SCALING_MODE_SCALE_TO_FIT
-        repeatMode = Player.REPEAT_MODE_ONE
+        repeatMode = Player.REPEAT_MODE_OFF
 
-        setMediaItem(MediaItem.fromUri(uri))
+        addListener(object: Player.Listener {
+          override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            addMediaItem(MediaItem.fromUri(nextUri(uri)))
+            super.onMediaItemTransition(mediaItem, reason)
+          }
+        })
+
+        addMediaItem(MediaItem.fromUri(nextUri(uri)))
+        addMediaItem(MediaItem.fromUri(nextUri(uri)))
+
         prepare()
         play()
       }
