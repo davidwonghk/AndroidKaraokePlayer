@@ -1,8 +1,9 @@
 package com.android.karaokeplayer
 
+import android.graphics.Color
 import android.net.Uri
 import android.net.Uri.Builder
-import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams
 import android.widget.FrameLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -67,22 +68,23 @@ fun VideoPlayer() {
       }
   }
 
-  acceptControl(exoPlayer, host, wsport)
+  val client = acceptControl(exoPlayer, host, wsport)
 
   DisposableEffect(
     AndroidView(factory = {
       PlayerView(context).apply {
-        //hideController()
-        useController = true
-        this.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+        hideController()
+        setBackgroundColor(Color.BLACK)
+        useController = false
+        this.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
         player = exoPlayer
-        layoutParams = FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)
+        layoutParams = FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
       }
     })
   ) {
     onDispose {
       exoPlayer.release()
-      //client.close()
+      client.close()
     }
   }
 }
