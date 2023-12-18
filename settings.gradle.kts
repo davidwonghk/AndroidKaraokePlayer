@@ -14,5 +14,10 @@ dependencyResolutionManagement {
     }
 }
 
+gradle.extra.apply {
+    set("androidxMediaModulePrefix", "media-")
+}
+apply(from = file("/home/david/workspace/media/core_settings.gradle"))
+
 rootProject.name = "AndroidKaraokePlayer"
 include(":app")

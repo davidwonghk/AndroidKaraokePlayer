@@ -12,6 +12,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.DefaultRenderersFactory
+import androidx.media3.exoplayer.DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
@@ -35,13 +37,15 @@ fun nextUri(host: String, port: Int): Uri {
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 fun VideoPlayer() {
   val context = LocalContext.current
-
   val (host, port, wsport) = runBlocking {
      discover("0.0.0.0")
   }
 
+  val renderFactory = DefaultRenderersFactory(context).apply {
+    setExtensionRendererMode(EXTENSION_RENDERER_MODE_ON)
+  }
   val exoPlayer = remember {
-    ExoPlayer.Builder(context)
+    ExoPlayer.Builder(context, renderFactory)
       .build()
       .apply {
         playWhenReady = true
